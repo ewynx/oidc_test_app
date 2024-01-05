@@ -1,45 +1,3 @@
-# OIDC Test App
-
-Simple Web App that obtains JWT token with Google Login and verifies it using a javascript lib `jsonwebtoken`. 
-
-## Run
-Backend
-```
-node verifcation-server/server.js
-```
-
-Frontend
-```
-npm start
-```
-
-## Info 
-### Frontend
-
-```
-npx create-react-app oidc-test-app
-npm install @react-oauth/google
-npm install axios jsonwebtoken
-```
-
-`npm start`
-
-This credential is a JWT token.
-
-{credential: 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjkxNDEzY2Y0ZmEwY2I5Mm…csvUeosdGTTxxxxH9VH5fg', clientId: '469413265754-ov4onucxxxx', select_by: 'btn'}
-
-Consists of Header, Payload, and Signature, separated by dot. 
-
-### Backend
-
-```
-mkdir verification-server
-cd verification-server
-npm init -y
-npm install express jsonwebtoken jwks-rsa cors
-```
-Add file `server.js` with this code:
-```javascript
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const jwksClient = require('jwks-rsa');
@@ -62,6 +20,8 @@ function getKey(header, callback) {
 
 app.post('/verify-token', (req, res) => {
   const { token } = req.body;
+  // RSA & SHA256
+  // https://github.com/auth0/node-jsonwebtoken/blob/bc28861f1fa981ed9c009e29c044a19760a0b128/verify.js
   jwt.verify(token, getKey, { algorithms: ['RS256'] }, (err, decoded) => {
     if (err) {
       return res.status(401).send({ verified: false, message: 'Token verification failed' });
@@ -70,11 +30,14 @@ app.post('/verify-token', (req, res) => {
   });
 });
 
+// E: decode token
+// https://github.com/auth0/node-jsonwebtoken/blob/bc28861f1fa981ed9c009e29c044a19760a0b128/decode.js
+// https://github.com/auth0/node-jws/blob/b9fb8d30e9c009ade6379f308590f1b0703eefc3/lib/verify-stream.js#L56
+
+// E: Token consists of 3 parts
+// part 2 is signature, this must be non empty for our case
+
 const port = 3001; // Use a different port from your React app
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
 });
-
-```
-
-Run with `node server.js`
